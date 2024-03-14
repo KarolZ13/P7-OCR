@@ -21,6 +21,18 @@ class UserRepository extends ServiceEntityRepository
         parent::__construct($registry, User::class);
     }
 
+    public function getPaginatedUsersByCustomer(int $customerId, int $page, int $limit)
+    {
+        $query = $this->createQueryBuilder('u')
+            ->andWhere('u.customer = :customerId')
+            ->setParameter('customerId', $customerId)
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->getQuery();
+
+        return $query->getResult();
+    }
+
 //    /**
 //     * @return User[] Returns an array of User objects
 //     */

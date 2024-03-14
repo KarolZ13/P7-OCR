@@ -6,6 +6,7 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use JMS\Serializer\Annotation\Groups;
 use Hateoas\Configuration\Annotation as Hateoas;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @Hateoas\Relation(
@@ -34,18 +35,22 @@ class User
     private ?Customer $customer = null;
 
     #[ORM\Column(length: 255, nullable: false)]
+    #[Assert\NotBlank(message: "L'email est requis")]
+    #[Assert\Email(message: "L'email doit être une adresse email valide")]
     #[Groups(["getUsers"])]
     private ?string $email = null;
 
     #[ORM\Column(length: 255, nullable: false)]
+    #[Assert\NotBlank(message: "Le prénom est requis")]
     #[Groups(["getUsers"])]
     private ?string $firstname = null;
 
     #[ORM\Column(length: 2558, nullable: false)]
+    #[Assert\NotBlank(message: "Le nom de famille est requis")]
     #[Groups(["getUsers"])]
     private ?string $lastname = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     #[Groups(["getUsers"])]
     private ?\DateTimeImmutable $createdAt = null;
 
