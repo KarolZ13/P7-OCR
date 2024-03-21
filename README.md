@@ -9,8 +9,9 @@ MySql 8
 ## Suivre les étapes suivantes :
 
 **Etape 1.1 :** Cloner le repository suivant depuis votre terminal :
+```
   git clone https://github.com/KarolZ13/P7-OCR
-
+```
 **Etape 1.2 :** Executer la commande suivante :
   composer install
 
