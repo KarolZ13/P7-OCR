@@ -45,7 +45,7 @@ MySql 8
 symfony server:start -d
 ```
 
-**Etape 6:** Tester l'API avec la documentation comme support
+**Etape 6.1:** Tester l'API avec la documentation comme support
 ```
 http://127.0.0.1:8000/api/doc
 ```
