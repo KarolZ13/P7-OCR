@@ -40,6 +40,10 @@ MySql 8
     JWT_PASSPHRASE=VotrePassePhrase
     ###< lexik/jwt-authentication-bundle ###
 ```
+**Etape 6:** Lancer le projet symfony
+```
+symfony server:start -d
+```
 
 **Etape 6:** Tester l'API avec la documentation comme support
 ```
