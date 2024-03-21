@@ -18,6 +18,24 @@ use Symfony\Component\Validator\Constraints as Assert;
  *      ),
  *      exclusion = @Hateoas\Exclusion(groups = {"getUsers"})
  * )
+ * 
+ * @Hateoas\Relation(
+ *      "update",
+ *      href = @Hateoas\Route(
+ *          "app_customer_user_edit",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *      ),
+ *      exclusion = @Hateoas\Exclusion(groups = {"getUsers"})
+ * )
+ *
+ * @Hateoas\Relation(
+ *      "delete",
+ *      href = @Hateoas\Route(
+ *          "app_customer_user_delete",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *      ),
+ *      exclusion = @Hateoas\Exclusion(groups = {"getUsers"})
+ * )
  */
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]

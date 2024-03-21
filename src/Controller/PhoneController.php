@@ -12,10 +12,41 @@ use JMS\Serializer\SerializerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use OpenApi\Annotations as OA;
 
 #[Route('/api')]
 class PhoneController extends AbstractController
 {
+
+    /**
+     * Cette méthode permet de récupérer l'ensemble des téléphones.
+     *
+     * @OA\Response(
+     *     response=200,
+     *     description="Retourne la liste des téléphones",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Phone::class))
+     *     )
+     * )
+     * @OA\Parameter(
+     *     name="page",
+     *     in="query",
+     *     description="La page que l'on veut récupérer",
+     *     @OA\Schema(type="int")
+     * )
+     *
+     * @OA\Parameter(
+     *     name="limit",
+     *     in="query",
+     *     description="Le nombre d'éléments que l'on veut récupérer",
+     *     @OA\Schema(type="int")
+     * )
+     * @OA\Tag(name="Phone")
+     *
+     */
     #[Route('/phones', name: 'app_phone', methods: ['GET'])]
     public function getPhones(PhoneRepository $phoneRepository, SerializerInterface $serializer, TagAwareCacheInterface $cache, Request $request): JsonResponse
     {
@@ -60,6 +91,17 @@ class PhoneController extends AbstractController
 
         // Sérialiser les détails du téléphone au format JSON
         $jsonPhone = $serializer->serialize($phoneDetails, 'json');
-        return new JsonResponse($jsonPhone, Response::HTTP_OK, [], true);
+
+        // Convertir les données JSON en tableau
+        $data = json_decode($jsonPhone, true);
+
+        // Supprimez la clé "_links" du tableau
+        unset($data['_links']);
+
+        // Reconvertir le tableau en JSON
+        $jsonWithoutLinks = json_encode($data);
+
+        // Retourner les données de l'utilisateur sans les liens sous forme de réponse JSON
+        return new JsonResponse($jsonWithoutLinks, Response::HTTP_OK, [], true);
     }
 }
