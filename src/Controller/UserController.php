@@ -18,11 +18,41 @@ use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use JMS\Serializer\DeserializationContext;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security as ApiDocSecurity;
+use OpenApi\Annotations as OA;
 
 #[Route('/api')]
 class UserController extends AbstractController
 {
+    /**
+     * Cette méthode permet de récupérer l'ensemble des utilisateurs.
+     *
+     * @OA\Response(
+     *     response=200,
+     *     description="Retourne la liste des utilisateurs",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=User::class))
+     *     )
+     * )
+     * @OA\Parameter(
+     *     name="page",
+     *     in="query",
+     *     description="La page que l'on veut récupérer",
+     *     @OA\Schema(type="int")
+     * )
+     *
+     * @OA\Parameter(
+     *     name="limit",
+     *     in="query",
+     *     description="Le nombre d'éléments que l'on veut récupérer",
+     *     @OA\Schema(type="int")
+     * )
+     * @OA\Tag(name="User")
+     *
+     */
     #[Route('/users', name: 'app_users', methods:['GET'])]
     public function getUsersByCustomer(UserRepository $userRepository, SerializerInterface $serializer, Security $security, TagAwareCacheInterface $cache,  Request $request): JsonResponse
     {
@@ -157,8 +187,8 @@ class UserController extends AbstractController
                 $entityManager->remove($user);
                 $entityManager->flush();
 
-                // Retourner une réponse JSON vide avec le code de statut "OK" (200)
-                return new JsonResponse([], Response::HTTP_OK);
+                // Retourner une réponse JSON vide avec le code de statut "NO CONTENT" (204)
+                return new JsonResponse(null, Response::HTTP_NO_CONTENT);
             } else {
                 return new JsonResponse(['message' => 'Vous n\'etes pas autorisé à supprimer l\'utilisateur'], Response::HTTP_FORBIDDEN);
             }
@@ -168,7 +198,7 @@ class UserController extends AbstractController
     }
 
     #[Route('/user/{id}/edit', name: 'app_customer_user_edit', methods:['PUT'])]
-    public function editUser(Request $request, User $currentUser, Security $security, EntityManagerInterface $entityManager, SerializerInterface $serializer, CustomerRepository $customerRepository): JsonResponse
+    public function editUser(Request $request, User $currentUser, Security $security, EntityManagerInterface $entityManager, ValidatorInterface $validator): JsonResponse
     {
         // Récupérer le client actuellement connecté
         $currentCustomer = $security->getUser();
@@ -191,8 +221,8 @@ class UserController extends AbstractController
                 return new JsonResponse(['message' => 'Erreur lors de la modification du champ "' . $property . '".'], Response::HTTP_BAD_REQUEST);
             }
         }
-
-            // Mettre à jour les données de l'utilisateur avec les données désérialisées
+    
+        // Mettre à jour les données de l'utilisateur avec les données désérialisées
         foreach ($requestData as $property => $_) {
             // Utilisation de l'accessor approprié pour définir la valeur de la propriété
             $setterMethod = 'set' . ucfirst($property);
@@ -200,10 +230,40 @@ class UserController extends AbstractController
                 $currentUser->$setterMethod($requestData[$property]);
             }
         }
+        
+        $errors = $validator->validate($currentUser);
+        if (count($errors) > 0) {
+            $errorMessages = [];
+            foreach ($errors as $error) {
+                $errorMessages[] = $error->getMessage();
+            }
+            return new JsonResponse(['message' => 'Erreurs de validation.', 'errors' => $errorMessages], JsonResponse::HTTP_BAD_REQUEST);
+        }
     
         // Enregistrer les modifications dans la base de données
         $entityManager->flush();
-
-        return new JsonResponse(['message' => 'Utilisateur mis à jour avec succès.'], JsonResponse::HTTP_OK);
+    
+        // Construire le tableau des données de l'utilisateur modifié
+        $userData = [
+            'email' => $currentUser->getEmail(),
+            'firstname' => $currentUser->getFirstname(),
+            'lastname' => $currentUser->getLastname(),
+            'createdAt' => $currentUser->getCreatedAt()->format('Y-m-d\TH:i:sP'),
+            '_links' => [
+                'self' => [
+                    'href' => $this->generateUrl('app_user_details', ['id' => $currentUser->getId()], UrlGeneratorInterface::ABSOLUTE_URL)
+                ],
+                'update' => [
+                    'href' => $this->generateUrl('app_customer_user_edit', ['id' => $currentUser->getId()], UrlGeneratorInterface::ABSOLUTE_URL)
+                ],
+                'delete' => [
+                    'href' => $this->generateUrl('app_customer_user_delete', ['id' => $currentUser->getId()], UrlGeneratorInterface::ABSOLUTE_URL)
+                ]
+            ]
+        ];
+    
+        // Retourner les données de l'utilisateur modifié
+        return new JsonResponse($userData, JsonResponse::HTTP_OK);
     }
+    
 }
