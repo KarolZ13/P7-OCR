@@ -27,7 +27,7 @@ use OpenApi\Annotations as OA;
 class UserController extends AbstractController
 {
     /**
-     * Cette méthode permet de récupérer l'ensemble des utilisateurs.
+     * Cette méthode permet de récupérer l'ensemble des utilisateurs
      *
      * @OA\Response(
      *     response=200,
