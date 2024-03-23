@@ -14,7 +14,7 @@ use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use Nelmio\ApiDocBundle\Annotation\Security;
-use OpenApi\Annotations as OA;
+use OpenApi\Attributes as OA;
 
 #[Route('/api')]
 class PhoneController extends AbstractController
@@ -23,31 +23,30 @@ class PhoneController extends AbstractController
     /**
      * Cette méthode permet de récupérer l'ensemble des téléphones.
      *
-     * @OA\Response(
-     *     response=200,
-     *     description="Retourne la liste des téléphones",
-     *     @OA\JsonContent(
-     *        type="array",
-     *        @OA\Items(ref=@Model(type=Phone::class))
-     *     )
-     * )
-     * @OA\Parameter(
-     *     name="page",
-     *     in="query",
-     *     description="La page que l'on veut récupérer",
-     *     @OA\Schema(type="int")
-     * )
-     *
-     * @OA\Parameter(
-     *     name="limit",
-     *     in="query",
-     *     description="Le nombre d'éléments que l'on veut récupérer",
-     *     @OA\Schema(type="int")
-     * )
-     * @OA\Tag(name="Phone")
-     *
-     */
+    **/
     #[Route('/phones', name: 'app_phone', methods: ['GET'])]
+    #[OA\Response(
+        response: 200,
+        description: 'Retourne la liste des téléphones',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Phone::class))
+        )
+    )]
+    #[OA\Parameter(
+        name:"page",
+        in:"query",
+        description:"La page que l'on veut récupérer",
+        schema: new OA\Schema(type: 'int')
+    )]
+    
+    #[OA\Parameter(
+        name:"limit",
+        in:"query",
+        description:"Le nombre d'éléments que l'on veut récupérer",
+        schema: new OA\Schema(type: 'int')
+    )]
+    #[OA\Tag(name:"Phone")]
     public function getPhones(PhoneRepository $phoneRepository, SerializerInterface $serializer, TagAwareCacheInterface $cache, Request $request): JsonResponse
     {
         // Récupérer les paramètres de pagination de la requête
@@ -70,7 +69,21 @@ class PhoneController extends AbstractController
         return new JsonResponse($jsonPhones, Response::HTTP_OK, [], true);
     }
 
+
+    /**
+     * Cette méthode permet de récupérer les détails d'un téléphone.
+     *
+    **/
     #[Route('/phone/{id}', name: 'app_details_phone', methods: ['GET'])]
+    #[OA\Response(
+        response: 200,
+        description: 'Retourne les détails d\'un téléphones',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Phone::class))
+        )
+    )]
+    #[OA\Tag(name:"Phone")]
     public function getDetailsPhones(Phone $phone, SerializerInterface $serializer, TagAwareCacheInterface $cache): JsonResponse
     {
         // Générer une clé de cache unique basée sur l'identifiant du téléphone

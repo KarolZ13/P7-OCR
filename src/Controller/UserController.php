@@ -21,39 +21,38 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use Nelmio\ApiDocBundle\Annotation\Security as ApiDocSecurity;
-use OpenApi\Annotations as OA;
+use OpenApi\Attributes as OA;
 
 #[Route('/api')]
 class UserController extends AbstractController
 {
     /**
-     * Cette méthode permet de récupérer l'ensemble des utilisateurs
+     * Cette méthode permet de récupérer l'ensemble des utilisateurs.
      *
-     * @OA\Response(
-     *     response=200,
-     *     description="Retourne la liste des utilisateurs",
-     *     @OA\JsonContent(
-     *        type="array",
-     *        @OA\Items(ref=@Model(type=User::class))
-     *     )
-     * )
-     * @OA\Parameter(
-     *     name="page",
-     *     in="query",
-     *     description="La page que l'on veut récupérer",
-     *     @OA\Schema(type="int")
-     * )
-     *
-     * @OA\Parameter(
-     *     name="limit",
-     *     in="query",
-     *     description="Le nombre d'éléments que l'on veut récupérer",
-     *     @OA\Schema(type="int")
-     * )
-     * @OA\Tag(name="User")
-     *
-     */
+    */
     #[Route('/users', name: 'app_users', methods:['GET'])]
+    #[OA\Response(
+        response: 200,
+        description: 'Retourne la liste des utilisateurs',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: User::class, groups: ['getUsers']))
+        )
+    )]
+    #[OA\Parameter(
+        name:"page",
+        in:"query",
+        description:"La page que l'on veut récupérer",
+        schema: new OA\Schema(type: 'int')
+    )]
+    
+    #[OA\Parameter(
+        name:"limit",
+        in:"query",
+        description:"Le nombre d'éléments que l'on veut récupérer",
+        schema: new OA\Schema(type: 'int')
+    )]
+    #[OA\Tag(name:"User")]
     public function getUsersByCustomer(UserRepository $userRepository, SerializerInterface $serializer, Security $security, TagAwareCacheInterface $cache,  Request $request): JsonResponse
     {
         // Récupérer le client actuellement connecté
@@ -90,7 +89,20 @@ class UserController extends AbstractController
         }
     }
 
+    /**
+     * Cette méthode permet de récupérer les détails d'un utilisateur.
+     *
+    */
     #[Route('/user/{id}/details', name: 'app_user_details', methods:['GET'])]
+    #[OA\Response(
+        response: 200,
+        description: 'Retourne les détails d\'un utilisateurs',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: User::class, groups: ['getUsers']))
+        )
+    )]
+    #[OA\Tag(name:"User")]
     public function getUserDetailsByCustomer(User $user, SerializerInterface $serializer, UserRepository $userRepository, Security $security, TagAwareCacheInterface $cache): JsonResponse
     {
         // Récupérer le client actuellement connecté
@@ -135,7 +147,20 @@ class UserController extends AbstractController
         }
     } 
 
+    /**
+     * Cette méthode permet de créer un utilisateur.
+     *
+    */    
     #[Route('/user/add', name: 'app_customer_user_add', methods:['POST'])]
+    #[OA\Response(
+        response: 200,
+        description: 'Permet de créer un utilisateur',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: User::class, groups: ['getUsers']))
+        )
+    )]
+    #[OA\Tag(name:"User")]
     public function addUser(Request $request, SerializerInterface $serializer, EntityManagerInterface $entityManager, Security $security, ValidatorInterface $validator): JsonResponse
     {
         // Récupérer le client actuellement connecté
@@ -175,7 +200,20 @@ class UserController extends AbstractController
         }
     }
 
+    /**
+     * Cette méthode permet de supprimer un utilisateur.
+     *
+    */ 
     #[Route('/user/{id}/delete', name: 'app_customer_user_delete', methods:['DELETE'])]
+    #[OA\Response(
+        response: 204,
+        description: 'Permet de supprimer un utilisateur',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: User::class, groups: ['getUsers']))
+        )
+    )]
+    #[OA\Tag(name:"User")]
     public function deleteUser(User $user, Security $security, EntityManagerInterface $entityManager): JsonResponse
     {
         // Récupérer le client actuellement connecté
@@ -197,7 +235,20 @@ class UserController extends AbstractController
         }
     }
 
+    /**
+     * Cette méthode permet de modifier un utilisateur.
+     *
+    */ 
     #[Route('/user/{id}/edit', name: 'app_customer_user_edit', methods:['PUT'])]
+    #[OA\Response(
+        response: 200,
+        description: 'Permet de modifier un utilisateur',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: User::class, groups: ['getUsers']))
+        )
+    )]
+    #[OA\Tag(name:"User")]
     public function editUser(Request $request, User $currentUser, Security $security, EntityManagerInterface $entityManager, ValidatorInterface $validator): JsonResponse
     {
         // Récupérer le client actuellement connecté
