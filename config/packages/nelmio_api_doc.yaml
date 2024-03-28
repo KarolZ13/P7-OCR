@@ -24,8 +24,68 @@ nelmio_api_doc:
                                 application/json:
                                     schema:
                                         $ref: '#/components/schemas/Token'
+            /api/user/add:
+                post:
+                    operationId: postUser
+                    tags:
+                        - User
+                    summary: Permet de créer un utilisateur.
+                    requestBody:
+                        description: Crée un nouveau utilisateur
+                        required: true
+                        content:
+                            application/json:
+                                schema:
+                                    $ref: '#/components/schemas/UserRequest'
+                    responses:
+                        '201':
+                            description: Création d'utilisateur réussie.
+                            content:
+                                application/json:
+                                    schema:
+                                        $ref: '#/components/schemas/Result'
+                                    example:
+                                        status: "User created successfully"
+                                        error: null
+            /api/user/{id}/edit:
+                put:
+                    operationId: putUser
+                    tags:
+                        - User
+                    summary: Permet de modifier un utilisateur.
+                    parameters:
+                        - name: id
+                          in: path
+                          required: true
+                          description: L'identifiant de l'utilisateur à modifier.
+                          schema:
+                            type: integer
+                    requestBody:
+                        description: Modifie un utilisateur existant
+                        required: true
+                        content:
+                            application/json:
+                                schema:
+                                    $ref: '#/components/schemas/UserRequest'
+                    responses:
+                        '200':
+                            description: Modification d'utilisateur réussie.
+                            content:
+                                application/json:
+                                    schema:
+                                        $ref: '#/components/schemas/Result'
+                                    example:
+                                        status: "User updated successfully"
+                                        error: null
         components:
             schemas:
+                Result:
+                    properties:
+                        status:
+                            type: string
+                        error:
+                            type: string
+                    type: object
                 Token:
                     type: object
                     properties:
@@ -41,6 +101,19 @@ nelmio_api_doc:
                         password:
                             type: string
                             default: password
+                UserRequest:
+                    type: object
+                    properties:
+                        email:
+                            type: string
+                        firstname:
+                            type: string
+                        lastname:
+                            type: string
+                    example:
+                        email: 'test@exemple.fr'
+                        firstname: 'Jessica'
+                        lastname: 'Smith'
             securitySchemes:
                 bearerAuth:
                     type: apiKey

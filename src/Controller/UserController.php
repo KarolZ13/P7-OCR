@@ -13,14 +13,12 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use App\Entity\User;
-use App\Repository\CustomerRepository;
 use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Nelmio\ApiDocBundle\Annotation\Model;
-use Nelmio\ApiDocBundle\Annotation\Security as ApiDocSecurity;
 use OpenApi\Attributes as OA;
 
 #[Route('/api')]
@@ -103,12 +101,16 @@ class UserController extends AbstractController
         )
     )]
     #[OA\Tag(name:"User")]
-    public function getUserDetailsByCustomer(User $user, SerializerInterface $serializer, UserRepository $userRepository, Security $security, TagAwareCacheInterface $cache): JsonResponse
+    public function getUserDetailsByCustomer(User $user = null, SerializerInterface $serializer, UserRepository $userRepository, Security $security, TagAwareCacheInterface $cache): JsonResponse
     {
         // Récupérer le client actuellement connecté
         $currentCustomer = $security->getUser();
-
+    
         if ($currentCustomer) {
+            if ($user === null) {
+                return new JsonResponse(['message' => 'L\'utilisateur n\'existe pas'], Response::HTTP_NOT_FOUND);
+            }
+    
             // Vérifier si le client actuellement connecté est autorisé à voir les détails de l'utilisateur demandé
             if ($user->getCustomer() === $currentCustomer) {
                 $userId = $user->getId();
@@ -130,13 +132,13 @@ class UserController extends AbstractController
     
                 // Convertir les données JSON en tableau
                 $data = json_decode($jsonUsers, true);
-
+    
                 // Supprimez la clé "_links" du tableau
                 unset($data['_links']);
     
                 // Reconvertir le tableau en JSON
                 $jsonWithoutLinks = json_encode($data);
-
+    
                 // Retourner les données de l'utilisateur sans les liens sous forme de réponse JSON
                 return new JsonResponse($jsonWithoutLinks, Response::HTTP_OK, [], true);
             } else {
@@ -145,7 +147,9 @@ class UserController extends AbstractController
         } else {
             return new JsonResponse(['message' => 'Accès refusé'], Response::HTTP_FORBIDDEN);
         }
-    } 
+    }
+    
+    
 
     /**
      * Cette méthode permet de créer un utilisateur.
@@ -214,48 +218,51 @@ class UserController extends AbstractController
         )
     )]
     #[OA\Tag(name:"User")]
-    public function deleteUser(User $user, Security $security, EntityManagerInterface $entityManager): JsonResponse
+    public function deleteUser(?User $user, Security $security, EntityManagerInterface $entityManager): JsonResponse
     {
         // Récupérer le client actuellement connecté
         $currentCustomer = $security->getUser();
     
-        if ($currentCustomer) {
-            if ($user->getCustomer() === $currentCustomer) {
-                // Supprimer l'utilisateur de la base de données    
-                $entityManager->remove($user);
-                $entityManager->flush();
-
-                // Retourner une réponse JSON vide avec le code de statut "NO CONTENT" (204)
-                return new JsonResponse(null, Response::HTTP_NO_CONTENT);
-            } else {
-                return new JsonResponse(['message' => 'Vous n\'etes pas autorisé à supprimer l\'utilisateur'], Response::HTTP_FORBIDDEN);
-            }
-        } else {
+        if (!$currentCustomer instanceof Customer) {
             return new JsonResponse(['message' => 'Accès refusé'], Response::HTTP_FORBIDDEN);
         }
+    
+        // Vérifier si l'utilisateur existe en base de données
+        if ($user === null) {
+            return new JsonResponse(['message' => 'L\'utilisateur n\'existe pas'], Response::HTTP_NOT_FOUND);
+        }
+    
+        if ($user->getCustomer() !== $currentCustomer) {
+            return new JsonResponse(['message' => 'Vous n\'êtes pas autorisé à supprimer l\'utilisateur'], Response::HTTP_FORBIDDEN);
+        }
+    
+        // Supprimer l'utilisateur de la base de données    
+        $entityManager->remove($user);
+        $entityManager->flush();
+    
+        // Retourner une réponse JSON vide avec le code de statut "NO CONTENT" (204)
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
+    
 
     /**
      * Cette méthode permet de modifier un utilisateur.
      *
     */ 
     #[Route('/user/{id}/edit', name: 'app_customer_user_edit', methods:['PUT'])]
-    #[OA\Response(
-        response: 200,
-        description: 'Permet de modifier un utilisateur',
-        content: new OA\JsonContent(
-            type: 'array',
-            items: new OA\Items(ref: new Model(type: User::class, groups: ['getUsers']))
-        )
-    )]
     #[OA\Tag(name:"User")]
-    public function editUser(Request $request, User $currentUser, Security $security, EntityManagerInterface $entityManager, ValidatorInterface $validator): JsonResponse
+    public function editUser(Request $request, ?User $currentUser, Security $security, EntityManagerInterface $entityManager, ValidatorInterface $validator): JsonResponse
     {
         // Récupérer le client actuellement connecté
         $currentCustomer = $security->getUser();
     
         if (!$currentCustomer instanceof Customer) {
             return new JsonResponse(['message' => 'Vous devez être authentifié en tant que client pour effectuer cette action.'], Response::HTTP_FORBIDDEN);
+        }
+    
+        // Vérifier si l'utilisateur existe en base de données
+        if ($currentUser === null) {
+            return new JsonResponse(['message' => 'L\'utilisateur n\'existe pas'], Response::HTTP_NOT_FOUND);
         }
     
         if ($currentUser->getCustomer() !== $currentCustomer) {
@@ -315,6 +322,5 @@ class UserController extends AbstractController
     
         // Retourner les données de l'utilisateur modifié
         return new JsonResponse($userData, JsonResponse::HTTP_OK);
-    }
-    
+    }    
 }

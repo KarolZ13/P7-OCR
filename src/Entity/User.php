@@ -24,6 +24,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  *      href = @Hateoas\Route(
  *          "app_customer_user_edit",
  *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
  *      ),
  *      exclusion = @Hateoas\Exclusion(groups = {"getUsers"})
  * )
@@ -33,6 +34,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  *      href = @Hateoas\Route(
  *          "app_customer_user_delete",
  *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
  *      ),
  *      exclusion = @Hateoas\Exclusion(groups = {"getUsers"})
  * )
