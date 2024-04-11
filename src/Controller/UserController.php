@@ -185,7 +185,6 @@ class UserController extends AbstractController
 
             // Vérifier s'il y a des erreurs de validation
             if ($errors->count() > 0) {
-                // Retourner les erreurs de validation sous forme de réponse JSON
                 return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
             }
 
